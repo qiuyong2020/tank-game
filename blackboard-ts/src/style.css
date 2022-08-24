@@ -1,0 +1,28 @@
+body {
+  width: 100vw;
+  height: 100vh;
+  background-color: #34495e;
+  /* 弹性盒模型 */
+  display: flex;
+  /* 主轴 */
+  justify-content: center;
+  /* 交叉轴 */
+  align-items: center;
+  /* 排列方式 */
+  flex-direction: column;
+}
+/* 按钮组 */
+.btns {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+}
+/* 颜色栏 */
+.color-container {
+  display: flex;
+}
+/* 截图样式 */
+.img-short {
+  width: 300px;
+  margin-top: 20px;
+}
