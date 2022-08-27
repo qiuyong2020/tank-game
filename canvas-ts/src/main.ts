@@ -62,7 +62,7 @@ gradient.addColorStop(1, 'skyblue')
 // context.fillStyle = 'skyblue'
 // context.fillRect(0, 0, el.width, el.height)
 // const img = document.createElement('img')  //图片标签
-// img.src = './images/1.jpeg' //<img src="" />
+// img.src = './images/picture.jpeg' //<img src="" />
 
 // img.onload = () => {
 //   // 按原图的宽和高的较小比例为准对 img 进行缩放
