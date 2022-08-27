@@ -18,4 +18,4 @@ class Straw extends canvasAbstract {
   
 } //继承画布抽象类
 
-export default new Straw()  //导出草地实例
+export default new Straw()  

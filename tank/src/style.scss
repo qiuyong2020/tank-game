@@ -9,6 +9,10 @@ body {
   justify-content: center;
   align-items: center;
   #app {
+    position: relative;
     background-color: #333;
+    canvas {
+      position: absolute;
+    }
   }
 }

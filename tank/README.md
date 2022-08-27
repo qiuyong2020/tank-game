@@ -1,5 +1,24 @@
 # 坦克游戏大战
 
+1.安装项目依赖：
+
+```node
+yarn
+```
+
+2.运行项目：
+
+```node
+yarn dev
+```
+
+3.在浏览器中进入网址：
+
+```node
+  ➜  Local:   http://127.0.0.1:5173/
+  ➜  Network: use --host to expose
+```
+
 ## 1.默认样式重置
 
 [CDN](https://www.bootcdn.cn/) 查找 `minireseter.css` 样式文件，复制 `<link>` 标签，在 `index.html` 中进行引入。
@@ -10,7 +29,7 @@
 
 ## 3.画布的抽象类
 
-- 定义抽象类：
+定义抽象类：
 
 ```ts
 // src/canvas/canvasAbstract.ts
@@ -742,3 +761,208 @@ class Straw extends canvasAbstract {
 
 export default new Straw() //导出草地实例
 ```
+
+## 13.绘制砖墙、水墙、白墙模型
+
+`src/config.ts` ：
+
+```ts
+// 导入模型图片
+import straw from './static/images/straw/straw.png'
+import wall from './static/images/wall/wall.gif'
+import water from './static/images/water/water.gif'
+import steel from './static/images/wall/steels.gif'
+
+// 全局配置
+export default {
+  // 定制画布尺寸
+  canvas: {
+    width: 900,
+    height: 600,
+  },
+  //定制模型尺寸
+  model: {
+    width: 30,
+    height: 30,
+  },
+  // 各种物体模型的贴图地址
+  images: {
+    straw,
+    wall,
+    water,
+    steel,
+  },
+  // 定制草地数量
+  straw: {
+    num: 60,
+  },
+  // 定制砖墙数量
+  wall: {
+    num: 60,
+  },
+  // 定制水墙数量
+  water: {
+    num: 30,
+  },
+  // 定制白墙数量
+  steel: {
+    num: 30,
+  },
+}
+```
+
+`src/models/modelAbstract.ts` ：
+
+```ts
+import config from '../config'
+
+//! 创建模型实例的抽象类
+export default abstract class modelAbstract {
+  // 定义一个抽象方法，子类必须实现该方法
+  abstract render(): void
+
+  constructor(protected canvas: CanvasRenderingContext2D, protected x: number, protected y: number) {}
+
+  // 物体模型的渲染动作（子类可复用）
+  protected draw(img: HTMLImageElement) {
+    this.canvas.drawImage(img, this.x, this.y, config.model.width, config.model.height)
+  }
+}
+```
+
+`src/models/wall.ts` ：
+
+```ts
+import { image } from '../service/image'
+import modelAbstract from './modelAbstract'
+
+// 创建砖墙模型的类
+export default class extends modelAbstract implements ModelInterface {
+  render(): void {
+    super.draw(image.get('wall')!)
+  }
+}
+```
+
+`src/models/water.ts` ：
+
+```ts
+import { image } from '../service/image'
+import modelAbstract from './modelAbstract'
+
+// 创建砖墙模型的类
+export default class extends modelAbstract implements ModelInterface {
+  render(): void {
+    super.draw(image.get('water')!)
+  }
+}
+```
+
+`src/models/steel.ts` ：
+
+```ts
+import { image } from '../service/image'
+import modelAbstract from './modelAbstract'
+
+// 创建砖墙模型的类
+export default class extends modelAbstract implements ModelInterface {
+  render(): void {
+    super.draw(image.get('steel')!)
+  }
+}
+```
+
+`src/canvas/wall.ts` ：
+
+```ts
+import config from '../config'
+import canvasAbstract from './canvasAbstract'
+import Model from '../models/wall'
+
+class Wall extends canvasAbstract {
+  constructor() {
+    super() //1.创建画布
+    super.createModels(config.wall.num, Model) //2.批量生成砖墙模型
+  }
+
+  render(): void {
+    super.renderModels() //3.砖墙模型渲染到画布上
+  }
+}
+
+export default new Wall()
+```
+
+`src/canvas/water.ts` ：
+
+```ts
+import config from '../config'
+import canvasAbstract from './canvasAbstract'
+import Model from '../models/water'
+
+class Water extends canvasAbstract {
+  constructor() {
+    super() //1.创建画布
+    super.createModels(config.water.num, Model) //2.批量生成砖墙模型
+  }
+
+  render(): void {
+    super.renderModels() //3.砖墙模型渲染到画布上
+  }
+}
+
+export default new Water()
+```
+
+`src/canvas/steel.ts` ：
+
+```ts
+import config from '../config'
+import canvasAbstract from './canvasAbstract'
+import Model from '../models/steel'
+
+class Steel extends canvasAbstract {
+  constructor() {
+    super() //1.创建画布
+    super.createModels(config.steel.num, Model) //2.批量生成砖墙模型
+  }
+
+  render(): void {
+    super.renderModels() //3.砖墙模型渲染到画布上
+  }
+}
+
+export default new Steel()
+```
+
+`src/main.ts` ：
+
+```ts
+import './style.scss'
+import config from './config'
+import { promises } from './service/image'
+import straw from './canvas/straw'
+import wall from './canvas/wall'
+import water from './canvas/water'
+import steel from './canvas/steel'
+
+const app = document.querySelector<HTMLDivElement>('#app')!
+// 读取全局配置中的画布尺寸
+app.style.width = config.canvas.width + 'px'
+app.style.height = config.canvas.height + 'px'
+
+// 加载贴图
+async function loadImage() {
+  // 先加载模型贴图
+  await Promise.all(promises)
+  // console.log(image.get('straw'))
+  // 再把模型渲染到画布上
+  straw.render()
+  wall.render()
+  water.render()
+  steel.render()
+}
+loadImage()
+```
+
+## 14.重构坦克模型的生成逻辑
