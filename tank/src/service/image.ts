@@ -26,4 +26,4 @@ const promises = Object.entries(config.images).map(([key, value]) => {
   })
 })
 
-export {image, promises}
+export {image, promises, type mapKey}

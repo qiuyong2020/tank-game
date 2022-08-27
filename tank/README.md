@@ -966,3 +966,264 @@ loadImage()
 ```
 
 ## 14.重构坦克模型的生成逻辑
+
+`src/canvas/canvasAbstract.ts` ：
+
+```ts
+import config from '../config'
+import position from '../service/position'
+
+//! 定义所有物体画布的抽象类
+export default abstract class canvasAbstract {
+  protected models: ModelInterface[] = [] //维护已创建的模型实例
+  abstract render(): void //声明一个抽象方法，用于画布的渲染
+  abstract num(): number //模型个数
+  abstract model(): ModelConstructor //物体模型
+
+  constructor(
+    protected app = document.querySelector('#app') as HTMLDivElement,
+    protected el = document.createElement('canvas'), //为物体创建canvas元素
+    protected canvas = el.getContext('2d')! //2d画布
+  ) {
+    //初始化
+    this.createCanvas()
+  }
+
+  // 创建画布
+  protected createCanvas() {
+    //物体画布的宽高
+    this.el.width = config.canvas.width
+    this.el.height = config.canvas.height
+
+    //将物体对应的canvas元素插入页面进行显示
+    this.app.insertAdjacentElement('afterbegin', this.el)
+  }
+
+  // 生成模型实例
+  protected createModels() {
+    // num为物体数量，每一个物体对应着画布上的一个模型贴图，位置都不一样
+    position.getCollection(this.num()).forEach((position) => {
+      const Model = this.model()
+      // 模型实例
+      const instance = new Model(this.canvas, position.x, position.y)
+      this.models.push(instance)
+    })
+  }
+
+  // 将模型渲染到画布上
+  protected renderModels() {
+    this.models.forEach((model) => {
+      // console.log(1)
+      model.render()
+    })
+  }
+}
+```
+
+`src/vite-env.d.ts` ：
+
+```ts
+/// <reference types="vite/client" />
+
+//! 为模型抽象类 modelAbstract 声明一个类型接口
+interface ModelConstructor {
+  new (canvas: CanvasRenderingContext2D, x: number, y: number): ModelInterface
+}
+
+// 为模型实例声明一个类型接口
+interface ModelInterface {
+  render(): void
+}
+
+// 为画布元素声明一个类型接口
+interface CanvasInterface {
+  model(): ModelConstructor
+  num(): number
+}
+```
+
+`src/config.ts` ：
+
+```ts
+// 导入模型图片
+import straw from './static/images/straw/straw.png'
+import wall from './static/images/wall/wall.gif'
+import water from './static/images/water/water.gif'
+import steel from './static/images/wall/steels.gif'
+import tank from './static/images/tank/bottom.gif'
+
+// 全局配置
+export default {
+  // 定制画布尺寸
+  canvas: {
+    width: 900,
+    height: 600,
+  },
+  //定制模型尺寸
+  model: {
+    width: 30,
+    height: 30,
+  },
+  // 各种物体模型的贴图地址
+  images: {
+    straw,
+    wall,
+    water,
+    steel,
+    tank,
+  },
+  // 定制草地数量
+  straw: {
+    num: 60,
+  },
+  // 定制砖墙数量
+  wall: {
+    num: 60,
+  },
+  // 定制水墙数量
+  water: {
+    num: 30,
+  },
+  // 定制白墙数量
+  steel: {
+    num: 30,
+  },
+  // 定制敌方坦克数量
+  tank: {
+    num: 10,
+  },
+}
+```
+
+`src/models/tank.ts` ：
+
+```ts
+import { image } from '../service/image'
+import modelAbstract from './modelAbstract'
+
+// 创建坦克模型的类
+export default class extends modelAbstract implements ModelInterface {
+  render(): void {
+    super.draw(image.get('tank')!)
+  }
+}
+```
+
+`src/canvas/tank.ts` ：
+
+```ts
+import config from '../config'
+import canvasAbstract from './canvasAbstract'
+import Model from '../models/tank'
+import position from '../service/position'
+
+//! 坦克画布
+class Tank extends canvasAbstract implements CanvasInterface {
+  render(): void {
+    this.createModels()
+    super.renderModels()
+  }
+  num(): number {
+    return config.tank.num
+  }
+  model(): ModelConstructor {
+    return Model
+  }
+
+  //重写坦克模型的生成逻辑，只在顶部刷新，有四个方向
+  protected createModels() {
+    for (let i = 0; i < this.num(); i++) {
+      // 随机生成坐标
+      const pos = position.position()
+
+      // 模型实例
+      const Model = this.model()
+      const instance = new Model(this.canvas, pos.x, 0)
+      this.models.push(instance)
+    }
+  }
+}
+
+export default new Tank()
+```
+
+## 15.改变坦克的运动方向
+
+`src/enum/directionEnum.ts` ：
+
+```ts
+// 坦克运动方向的枚举类型
+export enum directionEnum {
+  top = 'top',
+  right = 'right',
+  bottom = 'bottom',
+  left = 'left',
+}
+```
+
+`src/models/tank.ts` ：
+
+```ts
+import { directionEnum } from '../enum/directionEnum'
+import { image, type mapKey } from '../service/image'
+import modelAbstract from './modelAbstract'
+import _ from 'lodash'
+import config from '../config'
+
+// 创建坦克模型的类
+export default class extends modelAbstract implements ModelInterface {
+  // 坦克运动方向的枚举类型
+  protected direction: directionEnum = directionEnum.top
+
+  render(): void {
+    this.randomDirection()
+    super.draw(this.randomImage())
+
+    setInterval(() => {
+      this.move()
+    }, 50)
+  }
+
+  // 坦克在四个方向上的一次移动
+  protected move(): void {
+    //将移动前的旧模型从画布上清除
+    this.canvas.clearRect(this.x, this.y, config.model.width, config.model.height)
+
+    //改变模型坐标
+    switch (this.direction) {
+      case directionEnum.top:
+        //炮口朝上，向上走
+        this.y -= 2
+        break
+      case directionEnum.right:
+        this.x += 2
+        break
+      case directionEnum.bottom:
+        this.y += 2
+        break
+      case directionEnum.left:
+        this.x -= 2
+        break
+    }
+
+    //位置移动后，重绘新模型
+    super.draw(this.randomImage())
+  }
+
+  // 随机方向
+  randomDirection(): void {
+    //0~3随机整数
+    const index = Math.floor(Math.random() * 4)
+    //Object.keys(enum) => 将“枚举类型”转换为“可迭代对象”
+    this.direction = Object.keys(directionEnum)[index] as directionEnum
+    // console.log(this.direction)
+  }
+
+  randomImage(): HTMLImageElement {
+    //安装 lodash 库，字符串首字母大写
+    let direction = 'tank' + _.upperFirst(this.direction)
+
+    return image.get(direction as mapKey)!
+  }
+}
+```

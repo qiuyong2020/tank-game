@@ -5,6 +5,7 @@ import straw from './canvas/straw'
 import wall from './canvas/wall'
 import water from './canvas/water'
 import steel from './canvas/steel'
+import tank from './canvas/tank'
 
 const app = document.querySelector<HTMLDivElement>('#app')!
 // 读取全局配置中的画布尺寸
@@ -21,5 +22,6 @@ async function loadImage() {
   wall.render()
   water.render()
   steel.render()
+  tank.render()
 }
 loadImage()

@@ -9,3 +9,9 @@ interface ModelConstructor{
 interface ModelInterface{
   render(): void
 }
+
+// 为画布元素声明一个类型接口
+interface CanvasInterface{
+  model(): ModelConstructor
+  num(): number
+}

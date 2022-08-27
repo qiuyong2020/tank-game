@@ -2,10 +2,16 @@ import config from "../config";
 import canvasAbstract from "./canvasAbstract";
 import Model from '../models/steel';
 
-class Steel extends canvasAbstract {
+class Steel extends canvasAbstract implements CanvasInterface{
+  num(): number {
+    return config.steel.num
+  }
+  model(): ModelConstructor {
+    return Model
+  }
   constructor() {
     super()  //创建画布
-    super.createModels(config.steel.num, Model)  //批量生成砖墙模型
+    super.createModels()  //批量生成砖墙模型
   }
 
   render(): void {

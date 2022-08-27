@@ -28,10 +28,10 @@ class Position {
   }
 
   // 随机生成一组坐标
-  protected position() {
+  public position() {
     return { //画布尺寸、模型尺寸
       x: Math.floor(Math.random() * (config.canvas.width / config.model.width)) * config.model.width,
-      y: Math.floor(Math.random() * (config.canvas.height / config.model.height - 5)) * config.model.height + config.model.height * 1
+      y: Math.floor(Math.random() * (config.canvas.height / config.model.height - 5)) * config.model.height + config.model.height * 2
     }
   }
 }

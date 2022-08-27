@@ -5,6 +5,8 @@ import position from "../service/position"
 export default abstract class canvasAbstract {
   protected models: ModelInterface[] = []  //维护已创建的模型实例
   abstract render():void  //声明一个抽象方法，用于画布的渲染
+  abstract num(): number  //模型个数
+  abstract model(): ModelConstructor  //物体模型
 
   constructor(
     protected app = document.querySelector('#app') as HTMLDivElement,
@@ -26,9 +28,10 @@ export default abstract class canvasAbstract {
   }
 
   // 生成模型实例
-  protected createModels(num: number, Model: ModelConstructor) {
+  protected createModels() {
     // num为物体数量，每一个物体对应着画布上的一个模型贴图，位置都不一样
-    position.getCollection(num).forEach(position => {
+    position.getCollection(this.num()).forEach(position => {
+      const Model = this.model()
       // 模型实例
       const instance = new Model(this.canvas, position.x, position.y)
       this.models.push(instance)
